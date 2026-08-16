@@ -1,0 +1,5 @@
+com\example\demo\HomeControllerTest.class
+com\example\demo\controller\DisputeControllerTest.class
+com\example\demo\DemoApplicationTests.class
+com\example\demo\DisputeInvestigationIntegrationTest.class
+com\example\demo\service\RiskEngineTest.class
