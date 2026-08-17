@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GeminiChatLanguageModelTest {
 
     private GeminiChatLanguageModel geminiModel;
-    private static final String VALID_API_KEY = "AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg";
+    private static final String VALID_API_KEY = "AQ.YOUR_TEST_API_KEY_HERE";
     private static final String TEST_MODEL = "gemini-flash-latest";
     private static final int TIMEOUT_SECONDS = 30;
 

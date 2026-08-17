@@ -7,7 +7,7 @@ Write-Host "======================================"
 Write-Host ""
 
 # 1. Configuration loaded from properties
-$apiKey = "AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg"
+$apiKey = "AQ.YOUR_API_KEY_HERE"  # Replace with your actual key from https://aistudio.google.com/app/apikey
 $model = "gemini-flash-latest"
 $timeout = 30
 

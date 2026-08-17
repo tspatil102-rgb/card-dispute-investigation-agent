@@ -161,11 +161,11 @@ gcloud compute project-info describe --project=PROJECT-ID | grep -A 5 "generativ
 
 ### 3. Direct LLM Test (Skip API Layer)
 
-Test Gemini directly to ensure API key works:
+Test Gemini directly to ensure API key works (replace with your actual key):
 
 ```bash
 # PowerShell
-$apiKey = 'AQ.Ab8RN6J-JYP9CFi2f0DbVVH0O7l9r387Qf9I0418sxSA9OW_bA'
+$apiKey = 'AQ.YOUR_ACTUAL_GEMINI_API_KEY_HERE'
 $body = '{"contents":[{"parts":[{"text":"Analyze this fraud: Customer was charged $500 for a restaurant meal when the receipt was $45. What type of fraud is this?"}]}]}'
 $uri = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
 $headers = @{ 'X-goog-api-key' = $apiKey; 'Content-Type' = 'application/json' }

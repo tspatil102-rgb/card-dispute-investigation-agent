@@ -37,7 +37,7 @@ gcloud run deploy spring-boot-sample \
   --platform managed \
   --allow-unauthenticated \
   --port 8080 \
-  --set-env-vars GEMINI_API_KEY='AQ.Ab8RN6J-JYP9CFi2f0DbVVH0O7l9r387Qf9I0418sxSA9OW_bA'
+  --set-env-vars GEMINI_API_KEY='AQ.YOUR_ACTUAL_GEMINI_API_KEY_HERE'
 ```
 
 **Risks**: API key visible in deployment history and Cloud Run UI configuration.
@@ -46,9 +46,9 @@ gcloud run deploy spring-boot-sample \
 
 ### Step 1: Create Secret in Secret Manager
 ```bash
-# Store the Gemini API key as a secret
+# Store the Gemini API key as a secret (replace with your actual key from aistudio.google.com)
 gcloud secrets create gemini-api-key \
-  --data-file=- <<< 'AQ.Ab8RN6J-JYP9CFi2f0DbVVH0O7l9r387Qf9I0418sxSA9OW_bA'
+  --data-file=- <<< 'AQ.YOUR_ACTUAL_GEMINI_API_KEY_HERE'
 
 # Grant Cloud Run service account access to the secret
 gcloud secrets add-iam-policy-binding gemini-api-key \
@@ -92,6 +92,9 @@ curl -v https://card-dispute-investigation-agent-git-589638503857.asia-south1.ru
 gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="spring-boot-sample"' \
   --limit 50 \
   --order=desc
+
+# Check if GEMINI_API_KEY is properly set
+gcloud run services describe spring-boot-sample --region=asia-south1 | grep -i gemini
 
 # Follow logs (streaming)
 gcloud logging tail 'resource.type="cloud_run_revision" AND resource.labels.service_name="spring-boot-sample"' \
@@ -181,9 +184,9 @@ llm.gemini.timeout-seconds=30
 # Build Docker image locally
 docker build -t spring-boot-sample:latest .
 
-# Run locally with environment variable
+# Run locally with environment variable (replace with your actual key)
 docker run \
-  -e GEMINI_API_KEY='AQ.Ab8RN6J-JYP9CFi2f0DbVVH0O7l9r387Qf9I0418sxSA9OW_bA' \
+  -e GEMINI_API_KEY='AQ.YOUR_ACTUAL_GEMINI_API_KEY_HERE' \
   -p 8080:8080 \
   spring-boot-sample:latest
 
@@ -219,8 +222,8 @@ gcloud secrets describe gemini-api-key
 gcloud secrets versions list gemini-api-key
 gcloud secrets versions access latest --secret=gemini-api-key  # ⚠️ displays secret!
 
-# Update secret
-echo -n 'NEW_KEY_VALUE' | gcloud secrets versions add gemini-api-key --data-file=-
+# Update secret (replace with your new key)
+echo -n 'AQ.YOUR_NEW_GEMINI_API_KEY_HERE' | gcloud secrets versions add gemini-api-key --data-file=-
 
 # Revoke old secret version (after updating)
 gcloud secrets versions destroy VERSION_NUMBER --secret=gemini-api-key

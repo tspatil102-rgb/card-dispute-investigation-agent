@@ -23,7 +23,7 @@ Write-Host ""
 
 # 2. Check API key format
 Write-Host "TEST 2: Verify API key format" -ForegroundColor Cyan
-$apiKey = "AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg"
+$apiKey = "AQ.YOUR_API_KEY_HERE"  # Replace with your actual key from https://aistudio.google.com/app/apikey
 if ($apiKey -match "^AQ\.[A-Za-z0-9_-]+$") {
     Write-Host "OK API key format is valid"
     Write-Host "  Key: $($apiKey.Substring(0, 10))***hidden***"

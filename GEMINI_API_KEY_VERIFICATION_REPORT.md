@@ -25,7 +25,7 @@ The Gemini LLM API key integration has been successfully configured and tested. 
 
 | Property | Value | Status |
 |----------|-------|--------|
-| `llm.gemini.api-key` | `AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1e...` | ✓ Configured |
+| `llm.gemini.api-key` | `AQ.YOUR_API_KEY_HERE` | ✓ Configured (set via environment variable) |
 | `llm.gemini.model` | `gemini-flash-latest` | ✓ Configured |
 | `llm.gemini.timeout-seconds` | `30` | ✓ Configured |
 | Environment Variable | `GEMINI_API_KEY` | ✓ Supported |
@@ -123,7 +123,7 @@ TEST 5: Documentation Created           ✓ PASS
 ### API Key Status
 
 ```
-API Key: AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg
+API Key: `AQ.YOUR_API_KEY_HERE` (from https://aistudio.google.com/app/apikey)
   Status: Valid format
   Endpoint: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
   Authentication: X-goog-api-key header

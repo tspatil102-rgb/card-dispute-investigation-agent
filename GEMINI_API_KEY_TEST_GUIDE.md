@@ -7,7 +7,7 @@ This document provides comprehensive information about testing the Gemini LLM AP
 
 ### Current Configuration (application.properties)
 ```properties
-llm.gemini.api-key=${GEMINI_API_KEY:AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg}
+llm.gemini.api-key=${GEMINI_API_KEY:AQ.YOUR_API_KEY_HERE}
 llm.gemini.model=gemini-flash-latest
 llm.gemini.timeout-seconds=30
 ```
@@ -99,7 +99,7 @@ mvn clean test
 ### Configuration Tests (No API Calls)
 ```
 [✓] Gemini API Key is Loaded
-    - API Key: AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg
+    - API Key: `AQ.YOUR_API_KEY_HERE` (obtained from https://aistudio.google.com/app/apikey)
     - Format: Valid (AQ.xxxxx format)
     - Status: Ready
 

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @TestPropertySource(properties = {
-    "llm.gemini.api-key=AQ.Ab8RN6I-tAgYmkezRM1wPXFh2EcBZNqdDcb1eG6Q0UIgA0i7xg",
+    "llm.gemini.api-key=AQ.YOUR_TEST_API_KEY_HERE",
     "llm.gemini.model=gemini-flash-latest",
     "llm.gemini.timeout-seconds=30"
 })
