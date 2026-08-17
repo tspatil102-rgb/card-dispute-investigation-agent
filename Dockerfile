@@ -5,8 +5,7 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
 # Copy Maven wrapper and pom first for caching
-COPY pom.xml mvnw* ./
-COPY .mvn .mvn
+COPY pom.xml ./
 RUN mvn -B -f pom.xml -DskipTests dependency:go-offline
 
 # Copy source and build
