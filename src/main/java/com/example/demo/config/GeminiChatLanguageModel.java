@@ -21,13 +21,28 @@ public class GeminiChatLanguageModel implements ChatLanguageModel {
     private final String model;
     private final HttpClient httpClient;
     private final Gson gson = new Gson();
+    private final int timeoutSeconds;
 
     public GeminiChatLanguageModel(String apiKey, String model, int timeoutSeconds) {
         this.apiKey = apiKey;
         this.model = model;
+        this.timeoutSeconds = timeoutSeconds;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(timeoutSeconds))
                 .build();
+    }
+
+    // Getters for testing
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public int getTimeoutSeconds() {
+        return timeoutSeconds;
     }
 
     @Override

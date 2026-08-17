@@ -1,0 +1,12 @@
+target/
+.m2/
+.git
+.gitignore
+.idea
+.vscode
+*.log
+*.tmp
+Dockerfile
+verify-gemini-setup.ps1
+test-gemini-key.ps1
+GEMINI_API_KEY_TEST_GUIDE.md
