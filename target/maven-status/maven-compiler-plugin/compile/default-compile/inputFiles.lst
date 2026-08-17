@@ -39,6 +39,7 @@ C:\workspace\spring-boot-sample\src\main\java\com\example\demo\enums\Recommended
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\enums\RiskBand.java
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\enums\RiskTier.java
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\enums\TimelineEventType.java
+C:\workspace\spring-boot-sample\src\main\java\com\example\demo\exception\GlobalExceptionHandler.java
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\HomeController.java
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\repository\AuditLogRepository.java
 C:\workspace\spring-boot-sample\src\main\java\com\example\demo\repository\CardTransactionRepository.java

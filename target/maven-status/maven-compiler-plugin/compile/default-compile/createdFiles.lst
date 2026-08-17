@@ -58,6 +58,7 @@ com\example\demo\entity\DisputeCase$DisputeCaseBuilder.class
 com\example\demo\repository\DisputeCaseRepository.class
 com\example\demo\repository\CardTransactionRepository.class
 com\example\demo\enums\DisputeStatus.class
+com\example\demo\exception\GlobalExceptionHandler.class
 com\example\demo\enums\ComplaintType.class
 com\example\demo\enums\MerchantCategory.class
 com\example\demo\controller\MetricsController.class

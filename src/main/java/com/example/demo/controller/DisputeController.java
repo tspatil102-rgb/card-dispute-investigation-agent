@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public class DisputeController {
 
     @PostMapping
     @Operation(summary = "Create a new dispute case")
-    public ResponseEntity<Map<String, Object>> createDispute(@RequestBody CreateDisputeRequest request) {
+    public ResponseEntity<Map<String, Object>> createDispute(@Valid @RequestBody CreateDisputeRequest request) {
         DisputeCaseResponseDTO response = disputeService.createDispute(request);
         Map<String, Object> payload = Map.of(
                 "caseId", response.getCaseId(),
