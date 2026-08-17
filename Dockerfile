@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for building and running the Spring Boot app on Google Cloud Run
 
 # Build stage (Maven + JDK 21)
-FROM maven:3.10.1-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
 # Copy Maven wrapper and pom first for caching
