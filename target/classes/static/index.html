@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Dispute Investigation Agent - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            border-bottom: 3px solid #ccc;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            background: #f5f5f5;
+        }
+
+        .content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .case-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .case-card {
+            border: 1px solid #e0e0e0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .case-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .case-id {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .case-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-pending { background: #fff3e0; color: #f57c00; }
+        .status-approved { background: #e8f5e9; color: #388e3c; }
+        .status-closed { background: #f3e5f5; color: #7b1fa2; }
+        .status-escalated { background: #ffebee; color: #c62828; }
+
+        .risk-score {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .score-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            position: relative;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #ff9800, #f44336);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .case-list {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Card Dispute Investigation Agent</h1>
+            <p>Governed AI-assisted workflow for dispute investigation and resolution</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="switchTab('create')">Create Case</button>
+            <button class="tab" onclick="switchTab('cases')">View Cases</button>
+            <button class="tab" onclick="switchTab('investigate')">Investigate</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="content active">
+            <h2>System Overview</h2>
+            <div class="metric-grid" id="metricsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading metrics...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Case Tab -->
+        <div id="create" class="content">
+            <h2>Create New Dispute Case</h2>
+            <div id="createAlert"></div>
+            <form onsubmit="createDispute(event)">
+                <div class="form-group">
+                    <label for="customerId">Customer ID</label>
+                    <input type="number" id="customerId" required placeholder="e.g., 1001">
+                </div>
+                <div class="form-group">
+                    <label for="complaintText">Complaint Text</label>
+                    <textarea id="complaintText" required placeholder="Describe the disputed transaction..."></textarea>
+                </div>
+                <button type="submit">Create Dispute Case</button>
+            </form>
+        </div>
+
+        <!-- Cases Tab -->
+        <div id="cases" class="content">
+            <h2>Dispute Cases</h2>
+            <button onclick="loadCases()" style="margin-bottom: 1rem;">Refresh</button>
+            <div id="casesContainer" class="case-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading cases...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investigate Tab -->
+        <div id="investigate" class="content">
+            <h2>Investigate Dispute</h2>
+            <div id="investigateAlert"></div>
+            <div class="form-group">
+                <label for="caseId">Case ID</label>
+                <input type="text" id="caseId" placeholder="e.g., D1234567890">
+            </div>
+            <button onclick="investigateDispute()">Run Investigation</button>
+            <div id="investigationResult" style="margin-top: 2rem; display: none;">
+                <h3>Investigation Results</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'dashboard') loadMetrics();
+            if (tabName === 'cases') loadCases();
+        }
+
+        async function loadMetrics() {
+            try {
+                const response = await fetch(`${API_URL}/metrics/disputes`);
+                const metrics = await response.json();
+
+                const html = `
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.totalCases}</div>
+                        <div class="metric-label">Total Cases</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.totalApproved}</div>
+                        <div class="metric-label">Approved</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.totalClosed}</div>
+                        <div class="metric-label">Closed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.totalEscalated}</div>
+                        <div class="metric-label">Escalated</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.totalPending}</div>
+                        <div class="metric-label">Pending</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${Math.round(metrics.averageRiskScore)}</div>
+                        <div class="metric-label">Avg Risk Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.highRiskCases}</div>
+                        <div class="metric-label">High Risk</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.mediumRiskCases}</div>
+                        <div class="metric-label">Medium Risk</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.lowRiskCases}</div>
+                        <div class="metric-label">Low Risk</div>
+                    </div>
+                `;
+
+                document.getElementById('metricsContainer').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+                document.getElementById('metricsContainer').innerHTML = 
+                    '<div class="alert alert-error">Failed to load metrics</div>';
+            }
+        }
+
+        async function createDispute(e) {
+            e.preventDefault();
+            const customerId = document.getElementById('customerId').value;
+            const complaintText = document.getElementById('complaintText').value;
+
+            try {
+                const response = await fetch(`${API_URL}/disputes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerId, complaintText })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.caseId) {
+                    showAlert('createAlert', 'success', `Case created: ${data.caseId}`);
+                    document.getElementById('customerId').value = '';
+                    document.getElementById('complaintText').value = '';
+                } else {
+                    showAlert('createAlert', 'error', 'Failed to create case');
+                }
+            } catch (error) {
+                showAlert('createAlert', 'error', 'Error: ' + error.message);
+            }
+        }
+
+        async function loadCases() {
+            try {
+                const response = await fetch(`${API_URL}/disputes`);
+                if (!response.ok) throw new Error('Failed to fetch cases');
+
+                const cases = await response.json();
+
+                if (!Array.isArray(cases) || cases.length === 0) {
+                    document.getElementById('casesContainer').innerHTML =
+                        '<div class="alert alert-info">No dispute cases found yet.</div>';
+                    return;
+                }
+
+                const html = cases.map(caseItem => {
+                    const statusClass = `status-${(caseItem.status || 'new').toLowerCase().replace(/_/g, '-')}`;
+                    return `
+                        <div class="case-card" onclick="document.getElementById('caseId').value='${caseItem.caseId}'; switchTab('investigate');">
+                            <div class="case-id">${caseItem.caseId}</div>
+                            <div class="case-status ${statusClass}">${(caseItem.status || 'NEW').replace(/_/g, ' ')}</div>
+                            <div><strong>Customer:</strong> ${caseItem.customerId || 'N/A'}</div>
+                            <div><strong>Created:</strong> ${caseItem.createdAt ? new Date(caseItem.createdAt).toLocaleString() : 'N/A'}</div>
+                            <div class="risk-score">
+                                <strong>Risk Score:</strong> ${caseItem.riskScore ?? 0}/100
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${Math.min(caseItem.riskScore ?? 0, 100)}%">${caseItem.riskScore ?? 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('casesContainer').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading cases:', error);
+                document.getElementById('casesContainer').innerHTML =
+                    '<div class="alert alert-error">Failed to load cases.</div>';
+            }
+        }
+
+        async function investigateDispute() {
+            const caseId = document.getElementById('caseId').value;
+            if (!caseId) {
+                showAlert('investigateAlert', 'error', 'Please enter a Case ID');
+                return;
+            }
+
+            try {
+                document.getElementById('investigationResult').style.display = 'none';
+                showAlert('investigateAlert', 'info', 'Running investigation...');
+
+                const response = await fetch(`${API_URL}/disputes/${caseId}/investigate`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    displayInvestigationResult(result);
+                    showAlert('investigateAlert', 'success', 'Investigation completed');
+                } else {
+                    showAlert('investigateAlert', 'error', 'Case not found or investigation failed');
+                }
+            } catch (error) {
+                showAlert('investigateAlert', 'error', 'Error: ' + error.message);
+            }
+        }
+
+        function displayInvestigationResult(result) {
+            const riskLevel = result.riskResult.riskBand === 'HIGH' ? 'High Risk' : 
+                            result.riskResult.riskBand === 'MEDIUM' ? 'Medium Risk' : 'Low Risk';
+            
+            const html = `
+                <div class="grid-2">
+                    <div>
+                        <h4>Risk Assessment</h4>
+                        <p><strong>Score:</strong> ${result.riskResult.riskScore}/100</p>
+                        <p><strong>Level:</strong> ${riskLevel}</p>
+                    </div>
+                    <div>
+                        <h4>Recommendation</h4>
+                        <p><strong>Decision:</strong> ${result.recommendation.decision}</p>
+                        <p><strong>Confidence:</strong> ${result.recommendation.confidence}</p>
+                    </div>
+                </div>
+                <h4 style="margin-top: 1.5rem;">Triggered Rules</h4>
+                <ul>
+                    ${result.riskResult.triggeredRules.map(rule => 
+                        `<li>${rule.ruleCode} (+${rule.score}): ${rule.description}</li>`
+                    ).join('')}
+                </ul>
+                <h4 style="margin-top: 1.5rem;">Recommended Actions</h4>
+                <ul>
+                    ${result.recommendation.recommendedActions.map(action => 
+                        `<li>${action}</li>`
+                    ).join('')}
+                </ul>
+            `;
+
+            document.getElementById('resultContent').innerHTML = html;
+            document.getElementById('investigationResult').style.display = 'block';
+        }
+
+        function showAlert(elementId, type, message) {
+            const alert = document.getElementById(elementId);
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+        }
+
+        // Load metrics on page load
+        window.addEventListener('load', loadMetrics);
+    </script>
+</body>
+</html>
