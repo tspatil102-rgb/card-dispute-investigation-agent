@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LangChain4jConfiguration {
 
-    @Value("${llm.gemini.api-key:demo-key}")
+    @Value("${llm.gemini.api-key}")
     private String geminiApiKey;
 
     @Value("${llm.gemini.model:gemini-flash-latest}")
