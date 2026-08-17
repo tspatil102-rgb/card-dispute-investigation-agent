@@ -1,7 +1,10 @@
 # Direct Gemini API test with new key
 Write-Host "=== Testing New Gemini API Key ===" -ForegroundColor Cyan
 
-$apiKey = 'AQ.Ab8RN6Kv7cuAd7h9FYSxrWDp0hX37r1Vn250NkSHagpABwyzcg'
+$apiKey = $env:GEMINI_API_KEY
+if (-not $apiKey) {
+  $apiKey = 'REPLACE_WITH_GEMINI_API_KEY'
+}
 $body = '{"contents":[{"parts":[{"text":"Analyze this fraud: Customer was charged $500 for a restaurant meal when the receipt was $50. What type of fraud is this?"}]}]}'
 $uri = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
 $headers = @{ 'X-goog-api-key' = $apiKey; 'Content-Type' = 'application/json' }

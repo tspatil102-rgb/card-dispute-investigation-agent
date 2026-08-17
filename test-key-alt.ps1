@@ -1,6 +1,9 @@
 Write-Host "=== Testing with gemini-1.5-flash (alternative model) ===" -ForegroundColor Cyan
 
-$apiKey = 'AQ.Ab8RN6Kv7cuAd7h9FYSxrWDp0hX37r1Vn250NkSHagpABwyzcg'
+$apiKey = $env:GEMINI_API_KEY
+if (-not $apiKey) {
+  $apiKey = 'REPLACE_WITH_GEMINI_API_KEY'
+}
 $body = '{"contents":[{"parts":[{"text":"Analyze this fraud dispute: Customer charged $500 for meal, receipt shows $50. What type of fraud?"}]}]}'
 $uri = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 $headers = @{ 'X-goog-api-key' = $apiKey; 'Content-Type' = 'application/json' }

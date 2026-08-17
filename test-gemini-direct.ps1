@@ -1,7 +1,10 @@
 # Direct Gemini API test
 Write-Host "=== Direct Gemini API Test ===" -ForegroundColor Cyan
 
-$apiKey = 'AQ.Ab8RN6J-JYP9CFi2f0DbVVH0O7l9r387Qf9I0418sxSA9OW_bA'
+$apiKey = $env:GEMINI_API_KEY
+if (-not $apiKey) {
+  $apiKey = 'REPLACE_WITH_GEMINI_API_KEY'
+}
 $body = '{"contents":[{"parts":[{"text":"What is 2+2?"}]}]}'
 $uri = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
 $headers = @{ 'X-goog-api-key' = $apiKey; 'Content-Type' = 'application/json' }
