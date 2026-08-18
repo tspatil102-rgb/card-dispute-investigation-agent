@@ -289,10 +289,10 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
-            <button class="tab" onclick="switchTab('create')">Create Case</button>
-            <button class="tab" onclick="switchTab('cases')">View Cases</button>
-            <button class="tab" onclick="switchTab('investigate')">Investigate</button>
+            <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard', event)">Dashboard</button>
+            <button class="tab" data-tab="create" onclick="switchTab('create', event)">Create Case</button>
+            <button class="tab" data-tab="cases" onclick="switchTab('cases', event)">View Cases</button>
+            <button class="tab" data-tab="investigate" onclick="switchTab('investigate', event)">Investigate</button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -354,11 +354,14 @@
     <script>
         const API_URL = 'http://localhost:8080/api';
 
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
+            const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
             document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            const section = document.getElementById(tabName);
+            if (section) section.classList.add('active');
+            if (targetTab) targetTab.classList.add('active');
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
 
             if (tabName === 'dashboard') loadMetrics();
             if (tabName === 'cases') loadCases();
@@ -367,7 +370,14 @@
         async function loadMetrics() {
             try {
                 const response = await fetch(`${API_URL}/metrics/disputes`);
+                if (!response.ok) {
+                    throw new Error(`Metrics request failed: ${response.status}`);
+                }
+
                 const metrics = await response.json();
+                if (!metrics || typeof metrics !== 'object') {
+                    throw new Error('Invalid metrics payload');
+                }
 
                 const html = `
                     <div class="metric-card">
