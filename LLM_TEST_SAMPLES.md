@@ -15,7 +15,7 @@ Once deployed to Cloud Run with `GEMINI_API_KEY` set, use these sample complaint
 curl -X POST https://card-dispute-investigation-agent-git-589638503857.asia-south1.run.app/api/disputes \
   -H "Content-Type: application/json" \
   -d '{
-    "customerId": 1001,
+    "customerId": 100123,
     "transactionAmount": 85.50,
     "transactionDate": "2026-08-15T14:30:00",
     "transactionDescription": "Unauthorized Online Purchase",
@@ -73,12 +73,12 @@ curl -X POST https://card-dispute-investigation-agent-git-589638503857.asia-sout
     "transactionDate": "2026-08-14T22:45:00",
     "transactionDescription": "Wire Transfer to Unknown International Account",
     "merchant": "Unknown Bank Transfer Service",
-    "reason": "I was traveling in Europe but did not authorize any wire transfers. A $2500 wire transfer to an unknown account in Nigeria was charged to my card while I was sleeping. This is definitely fraud.",
+    "reason": "Iers. A $2500 wire transfer to an unknown account in Nigeria was charged to my card while I was sleeping. This is definitely fraud.",
     "status": "NEW"
   }'
 ```
 
-**LLM Analysis Expected**:
+**LLM Analysis Expec was traveling in Europe but did not authorize any wire transfted**:
 - High-risk fraud detection
 - Recognition of international transferfrom unusual location
 - Recommendation for card replacement
