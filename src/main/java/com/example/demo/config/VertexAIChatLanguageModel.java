@@ -30,15 +30,17 @@ public class VertexAIChatLanguageModel implements ChatLanguageModel {
     private final HttpClient httpClient;
     private final Gson gson = new Gson();
     private final int timeoutSeconds;
+    private final String credentialsFilePath;
     private GoogleCredentials credentials;
     private Long tokenExpireTime = 0L;
     private String cachedAccessToken = null;
 
-    public VertexAIChatLanguageModel(String projectId, String region, String model, int timeoutSeconds) {
+    public VertexAIChatLanguageModel(String projectId, String region, String model, int timeoutSeconds, String credentialsFilePath) {
         this.projectId = projectId;
         this.region = region != null && !region.isEmpty() ? region : "us-central1";
         this.model = model != null && !model.isEmpty() ? model : "gemini-2.0-flash";
         this.timeoutSeconds = timeoutSeconds;
+        this.credentialsFilePath = credentialsFilePath;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(timeoutSeconds))
                 .build();
@@ -47,6 +49,14 @@ public class VertexAIChatLanguageModel implements ChatLanguageModel {
 
     private void initializeCredentials() {
         try {
+            if (credentialsFilePath != null && !credentialsFilePath.isEmpty()) {
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(credentialsFilePath)) {
+                    this.credentials = GoogleCredentials.fromStream(fis)
+                            .createScoped("https://www.googleapis.com/auth/cloud-platform");
+                    return;
+                }
+            }
+
             this.credentials = GoogleCredentials.getApplicationDefault()
                     .createScoped("https://www.googleapis.com/auth/cloud-platform");
         } catch (IOException e) {
@@ -133,16 +143,17 @@ public class VertexAIChatLanguageModel implements ChatLanguageModel {
     private String callVertexAI(String prompt, String currentRegion) throws IOException, InterruptedException {
         String accessToken = getAccessToken();
 
-        // Build request body
+        // Build request body using the Vertex AI generateContent contract
         JsonObject body = new JsonObject();
         JsonArray contents = new JsonArray();
-        JsonObject content = new JsonObject();
+        JsonObject contentObj = new JsonObject();
+        contentObj.addProperty("role", "user");
         JsonArray parts = new JsonArray();
         JsonObject part = new JsonObject();
         part.addProperty("text", prompt);
         parts.add(part);
-        content.add("parts", parts);
-        contents.add(content);
+        contentObj.add("parts", parts);
+        contents.add(contentObj);
         body.add("contents", contents);
 
         // Build Vertex AI API URL
@@ -150,6 +161,11 @@ public class VertexAIChatLanguageModel implements ChatLanguageModel {
                 "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:generateContent",
                 currentRegion, projectId, currentRegion, model
         );
+
+        // Debug: log request body to help diagnose payload mismatches
+        try {
+            System.out.println("Vertex AI request body: " + gson.toJson(body));
+        } catch (Exception ignored) { }
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
@@ -179,12 +195,29 @@ public class VertexAIChatLanguageModel implements ChatLanguageModel {
         }
 
         JsonObject candidate = candidates.get(0).getAsJsonObject();
-        JsonObject contentJson = candidate.getAsJsonObject("content");
-        JsonArray partsJson = contentJson.getAsJsonArray("parts");
-        if (partsJson == null || partsJson.size() == 0) {
-            throw new IllegalStateException("Vertex AI response missing text content: " + response.body());
+        // Try the older response shape: content -> parts -> text
+        if (candidate.has("content") && candidate.getAsJsonObject("content").has("parts")) {
+            JsonObject contentJson = candidate.getAsJsonObject("content");
+            JsonArray partsJson = contentJson.getAsJsonArray("parts");
+            if (partsJson != null && partsJson.size() > 0) {
+                return partsJson.get(0).getAsJsonObject().get("text").getAsString();
+            }
         }
 
-        return partsJson.get(0).getAsJsonObject().get("text").getAsString();
+        // Newer chat response shape: content -> message -> content -> [{type:text, text:...}]
+        if (candidate.has("content") && candidate.getAsJsonObject("content").has("message")) {
+            JsonObject messageJson = candidate.getAsJsonObject("content").getAsJsonObject("message");
+            if (messageJson.has("content")) {
+                JsonArray msgContent = messageJson.getAsJsonArray("content");
+                if (msgContent != null && msgContent.size() > 0) {
+                    JsonObject first = msgContent.get(0).getAsJsonObject();
+                    if (first.has("text")) {
+                        return first.get("text").getAsString();
+                    }
+                }
+            }
+        }
+
+        throw new IllegalStateException("Vertex AI response missing text content (unsupported shape): " + response.body());
     }
 }

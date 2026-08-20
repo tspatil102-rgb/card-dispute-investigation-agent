@@ -1,13 +1,14 @@
-# Cloud Run Deployment Guide - Security Best Practices
+# Cloud Run Deployment Guide - Vertex AI with OAuth 2.0
 
 ## Overview
-This guide explains how to securely deploy the Card Dispute Investigation Agent to Google Cloud Run with proper Gemini API key management.
+This guide explains how to securely deploy the Card Dispute Investigation Agent to Google Cloud Run with Vertex AI backend using OAuth 2.0 authentication via service accounts.
 
 ## Security Model
-- **No hardcoded secrets** in source code or Docker image
+- **OAuth 2.0 Service Account** authentication (no API keys)
+- **Automatic token management** with caching and refresh
 - **Environment variable configuration** at deployment time
-- **Secret Manager integration** (recommended for production)
-- **Application fails safely** if GEMINI_API_KEY is not provided
+- **Cloud Run IAM binding** ensures least-privilege access
+- **No hardcoded secrets** in source code or Docker image
 
 ## Prerequisites
 - Google Cloud Project with Cloud Run API enabled
@@ -229,9 +230,147 @@ echo -n 'AQ.YOUR_NEW_GEMINI_API_KEY_HERE' | gcloud secrets versions add gemini-a
 gcloud secrets versions destroy VERSION_NUMBER --secret=gemini-api-key
 ```
 
+---
+
+## ⭐ UPDATED: Vertex AI Deployment (Current Recommended)
+
+### Prerequisites
+1. Google Cloud Project: `spring-boot-sample-505807`
+2. Service Account with Vertex AI permissions
+3. Service account key JSON file (already configured)
+4. Cloud Run service in asia-south1 region
+
+### Step 1: Build and Push Docker Image
+```bash
+# From project root: c:\workspace\spring-boot-sample
+docker build -t gcr.io/spring-boot-sample-505807/dispute-agent:latest .
+docker push gcr.io/spring-boot-sample-505807/dispute-agent:latest
+```
+
+### Step 2: Deploy to Cloud Run with Vertex AI Environment Variables
+```bash
+gcloud run deploy card-dispute-investigation-agent \
+  --image gcr.io/spring-boot-sample-505807/dispute-agent:latest \
+  --project spring-boot-sample-505807 \
+  --region asia-south1 \
+  --allow-unauthenticated \
+  --memory 512Mi \
+  --cpu 1 \
+  --timeout 300 \
+  --set-env-vars "GCP_PROJECT_ID=spring-boot-sample-505807,GCP_REGION=us-central1,VERTEX_AI_MODEL=gemini-1.5-pro"
+```
+
+**Key Points:**
+- `GCP_PROJECT_ID`: Your Google Cloud project ID
+- `GCP_REGION`: Region for Vertex AI API calls (us-central1 for gemini-1.5-pro availability)
+- `VERTEX_AI_MODEL`: Model to use (gemini-1.5-pro verified working ✅)
+- **No GEMINI_API_KEY needed** - Uses Vertex AI OAuth2 service account
+- **No GOOGLE_APPLICATION_CREDENTIALS file needed** - Cloud Run's default service account has necessary IAM roles
+
+### Step 3: Configure IAM Permissions
+The Cloud Run service account needs these roles:
+```bash
+# Get your Cloud Run service account email
+gcloud iam service-accounts list --filter="project:spring-boot-sample-505807"
+
+# Grant Vertex AI User role (replace SERVICE_ACCOUNT_EMAIL)
+gcloud projects add-iam-policy-binding spring-boot-sample-505807 \
+  --member=serviceAccount:SERVICE_ACCOUNT_EMAIL \
+  --role=roles/aiplatform.user
+```
+
+### Step 4: Update Existing Cloud Run Service (If Already Deployed)
+```bash
+gcloud run services update card-dispute-investigation-agent \
+  --update-env-vars GCP_PROJECT_ID=spring-boot-sample-505807,GCP_REGION=us-central1,VERTEX_AI_MODEL=gemini-1.5-pro \
+  --region asia-south1 \
+  --project spring-boot-sample-505807
+```
+
+## Vertex AI Model Availability Reference
+| Model | us-central1 | us-west1 | europe-west1 | asia-south1 |
+|-------|:-----------:|:--------:|:------------:|:-----------:|
+| gemini-1.5-pro | ✅ TESTED | ✅ | ✅ | ❌ |
+| gemini-1.5-flash | ✅ | ✅ | ✅ | ❌ |
+| gemini-2.0-flash | ❌ | ✅ | ❌ | ❌ |
+
+**Important:** Set `GCP_REGION=us-central1` for Vertex AI API calls, even if Cloud Run service is deployed in asia-south1. The app region and the model region are independent.
+
+## Testing Deployed Cloud Run Service
+```bash
+# Get the service URL
+SERVICE_URL=$(gcloud run services describe card-dispute-investigation-agent \
+  --region asia-south1 \
+  --project spring-boot-sample-505807 \
+  --format 'value(status.url)')
+
+# Test health endpoint
+curl $SERVICE_URL/health
+
+# Create a test dispute
+curl -X POST $SERVICE_URL/api/disputes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 12345,
+    "complaintText": "Card charged twice. Please investigate.",
+    "cardNumber": "****1234",
+    "amount": 99.99,
+    "transactionDate": "2024-08-19"
+  }'
+```
+
+## Troubleshooting Cloud Run Vertex AI Errors
+
+### Error: 404 Model not found
+**Symptom:** `"Publisher model... was not found"`
+**Solution:** Verify model is available in specified region.  Recommended: Use `gemini-1.5-pro` in `us-central1`
+```bash
+# Check logs
+gcloud run logs read card-dispute-investigation-agent --limit 50 --region asia-south1
+```
+
+### Error: 403 Permission denied
+**Symptom:** `"Caller does not have permission to use resource"`
+**Solution:** Add IAM role to Cloud Run service account:
+```bash
+gcloud projects add-iam-policy-binding spring-boot-sample-505807 \
+  --member=serviceAccount:SERVICE_ACCOUNT_EMAIL \
+  --role=roles/aiplatform.user
+```
+
+### Error: UNAUTHENTICATED Token generation failed
+**Symptom:** OAuth2 token generation fails
+**Solution:** Ensure Cloud Run service account has `roles/iam.serviceAccountUser` and `roles/aiplatform.user`
+
+## Comparison: Gemini API vs. Vertex AI
+
+| Feature | Gemini API (Legacy) | Vertex AI (Current) |
+|---------|---------------------|---------------------|
+| Authentication | API Key (in env var) | OAuth2 Service Account |
+| Cost Model | Per-request billing | Per-request billing |
+| Rate Limits | Limited free tier | Higher enterprise limits |
+| Availability | asia-south1 | us-central1 (for gemini-1.5-pro) |
+| Model Selection | Limited to API Studio models | Full Vertex AI catalog |
+| Reliability | Best effort | SLA-backed |
+| Production Ready | ❌ Not recommended | ✅ Recommended |
+
+## Files Modified for Vertex AI Migration
+1. **application.properties** - Added Vertex AI configuration section
+2. **VertexAIChatLanguageModel.java** - OAuth2 implementation with token caching
+3. **LangChain4jConfiguration.java** - Provider prioritization logic
+4. **pom.xml** - Added google-cloud-aiplatform and google-auth dependencies
+
+## Local Testing Verification ✅
+- Dispute Creation: ✅ Working
+- Investigation with LLM: ✅ Working without 404 errors
+- Customer Response Generation: ✅ LLM generated successfully
+- Risk Assessment: ✅ Scores and recommendations generated
+- Database Persistence: ✅ All data stored correctly
+
 ## References
 - [Cloud Run Documentation](https://cloud.google.com/run/docs)
-- [Using Secrets in Cloud Run](https://cloud.google.com/run/docs/configuring/secrets)
-- [Secret Manager](https://cloud.google.com/secret-manager/docs)
-- [Google AI Studio - Get API Key](https://aistudio.google.com/app/apikey)
+- [Vertex AI API Documentation](https://cloud.google.com/vertex-ai/docs)
+- [Google Auth Library - OAuth2](https://github.com/googleapis/google-auth-library-java)
 - [Spring Boot Environment Properties](https://docs.spring.io/spring-boot/reference/features/external-config.html)
+- [LangChain4j Documentation](https://docs.langchain4j.dev)
+

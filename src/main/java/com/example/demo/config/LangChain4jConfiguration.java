@@ -24,6 +24,9 @@ public class LangChain4jConfiguration {
     @Value("${llm.vertexai.timeout-seconds:30}")
     private Integer vertexAiTimeoutSeconds;
 
+    @Value("${llm.vertexai.credentials-file:}")
+    private String vertexAiCredentialsFile;
+
     @Value("${llm.gemini.api-key:}")
     private String geminiApiKey;
 
@@ -39,7 +42,7 @@ public class LangChain4jConfiguration {
         if (vertexAiProjectId != null && !vertexAiProjectId.isEmpty()) {
             try {
                 System.out.println("✅ Initializing Vertex AI ChatLanguageModel (Project: " + vertexAiProjectId + ", Region: " + vertexAiRegion + ")");
-                return new VertexAIChatLanguageModel(vertexAiProjectId, vertexAiRegion, vertexAiModel, vertexAiTimeoutSeconds);
+                return new VertexAIChatLanguageModel(vertexAiProjectId, vertexAiRegion, vertexAiModel, vertexAiTimeoutSeconds, vertexAiCredentialsFile);
             } catch (Exception e) {
                 System.err.println("⚠️ Failed to initialize Vertex AI: " + e.getMessage());
                 System.err.println("Falling back to Gemini API...");
@@ -54,6 +57,6 @@ public class LangChain4jConfiguration {
 
         // If neither is configured, return a Vertex AI instance anyway (will initialize with ADC)
         System.out.println("⚠️ No LLM provider explicitly configured, attempting to use Application Default Credentials for Vertex AI");
-        return new VertexAIChatLanguageModel(vertexAiProjectId, vertexAiRegion, vertexAiModel, vertexAiTimeoutSeconds);
+        return new VertexAIChatLanguageModel(vertexAiProjectId, vertexAiRegion, vertexAiModel, vertexAiTimeoutSeconds, vertexAiCredentialsFile);
     }
 }
